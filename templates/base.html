@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CaseDesk{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+{% if g.user %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <span class="brand-mark">CD</span>
+      <span><strong>CaseDesk</strong><small>Law Practice Manager</small></span>
+    </a>
+    <nav>
+      <a class="{{ 'active' if request.endpoint=='dashboard' else '' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a class="{{ 'active' if request.endpoint in ['people','person_new','person_detail','person_edit'] else '' }}" href="{{ url_for('people') }}">People</a>
+      <a class="{{ 'active' if request.endpoint in ['matters','matter_new','matter_detail','matter_edit'] else '' }}" href="{{ url_for('matters') }}">Matters</a>
+      <a class="{{ 'active' if request.endpoint in ['intakes','intake_choose','intake_new','intake_edit','intake_detail'] else '' }}" href="{{ url_for('intakes') }}">Client Intake</a>
+      <a class="{{ 'active' if request.endpoint=='tasks' else '' }}" href="{{ url_for('tasks') }}">Tasks</a>
+      <a class="{{ 'active' if request.endpoint=='calendar' else '' }}" href="{{ url_for('calendar') }}">Calendar</a>
+      <a class="{{ 'active' if request.endpoint=='time_entries' else '' }}" href="{{ url_for('time_entries') }}">Time</a>
+    </nav>
+    <div class="sidebar-user">
+      <div><strong>{{ g.user['name'] }}</strong><small>{{ g.user['email'] }}</small></div>
+      <form method="post" action="{{ url_for('logout') }}">
+        {{ csrf_field()|safe }}
+        <button class="link-button" type="submit">Sign out</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <form class="search" method="get" action="{{ url_for('global_search') }}">
+        <input name="q" placeholder="Search people, businesses, matters..." value="{{ request.args.get('q','') if request.endpoint=='global_search' else '' }}">
+      </form>
+      <div class="top-actions">
+        <a class="button ghost" href="{{ url_for('intake_choose') }}">+ Intake</a>
+        <a class="button ghost" href="{{ url_for('person_new') }}">+ Contact</a>
+        <a class="button" href="{{ url_for('matter_new') }}">+ Matter</a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-wrap">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+</body>
+</html>

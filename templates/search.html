@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Search · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">SEARCH</p><h1>Results{% if q %} for “{{ q }}”{% endif %}</h1></div></div>
+{% if not q %}<section class="card empty">Enter a search above.</section>{% else %}
+<div class="grid two">
+<section class="card"><h2>People & Organizations</h2><div class="list">{% for p in results.people %}<a class="list-row clickable" href="{{ url_for('person_detail', person_id=p.id) }}"><div><strong>{{ p.organization_name if p.person_type=='Business' else p.first_name ~ ' ' ~ p.last_name }}</strong><small>{{ p.roles or '' }}{% if p.email or p.phone %} · {{ p.email or p.phone }}{% endif %}</small></div></a>{% else %}<p class="empty">No contacts.</p>{% endfor %}</div></section>
+<section class="card"><h2>Matters</h2><div class="list">{% for m in results.matters %}<a class="list-row clickable" href="{{ url_for('matter_detail', matter_id=m.id) }}"><div><strong>{{ m.title }}</strong><small>{{ m.client_name }} · {{ m.case_number or '' }}</small></div></a>{% else %}<p class="empty">No matters.</p>{% endfor %}</div></section>
+<section class="card"><h2>Notes</h2><div class="list">{% for n in results.notes %}<a class="list-row clickable" href="{{ url_for('matter_detail', matter_id=n.matter_id) }}#notes"><div><strong>{{ n.matter_title }}</strong><small>{{ n.body[:120] }}{% if n.body|length > 120 %}…{% endif %}</small></div></a>{% else %}<p class="empty">No notes.</p>{% endfor %}</div></section>
+<section class="card"><h2>Client Intakes</h2><div class="list">{% for i in results.intakes %}<a class="list-row clickable" href="{{ url_for('intake_detail', intake_id=i.id) }}"><div><strong>{{ i.first_name }} {{ i.last_name }}</strong><small>{{ intake_types[i.intake_type].name }} · {{ i.status }}</small></div></a>{% else %}<p class="empty">No intakes.</p>{% endfor %}</div></section>
+</div>
+{% endif %}
+{% endblock %}

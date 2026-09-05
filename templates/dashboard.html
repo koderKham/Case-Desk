@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">OVERVIEW</p><h1>Firm Dashboard</h1><p class="muted">Your active practice at a glance.</p></div>
+</div>
+
+<div class="stats stats-five">
+  <div class="stat"><span>Active Matters</span><strong>{{ stats.active_matters }}</strong></div>
+  <div class="stat"><span>People</span><strong>{{ stats.people }}</strong></div>
+  <a class="stat stat-link" href="{{ url_for('intakes', status='New') }}"><span>New Intakes</span><strong>{{ stats.new_intakes }}</strong></a>
+  <div class="stat"><span>Open Tasks</span><strong>{{ stats.open_tasks }}</strong></div>
+  <div class="stat"><span>Hours This Month</span><strong>{{ "%.1f"|format(stats.hours_month) }}</strong></div>
+</div>
+
+<div class="grid two">
+  <section class="card">
+    <div class="card-head"><h2>Priority Tasks</h2><a href="{{ url_for('tasks') }}">View all</a></div>
+    {% if tasks %}
+      <div class="list">
+      {% for task in tasks %}
+        <div class="list-row">
+          <div><strong>{{ task.title }}</strong><small>{{ task.matter_title }}</small></div>
+          <div class="right"><span class="badge {{ task.priority|lower }}">{{ task.priority }}</span><small>{{ task.due_date or 'No due date' }}</small></div>
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}<p class="empty">No open tasks.</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Upcoming Calendar</h2><a href="{{ url_for('calendar') }}">View all</a></div>
+    {% if events %}
+      <div class="list">
+      {% for event in events %}
+        <div class="list-row">
+          <div><strong>{{ event.title }}</strong><small>{{ event.matter_title }}</small></div>
+          <div class="right"><span class="badge">{{ event.event_type }}</span><small>{{ event.start_at.replace('T',' ') }}</small></div>
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}<p class="empty">No upcoming events.</p>{% endif %}
+  </section>
+</div>
+
+
+<section class="card">
+  <div class="card-head"><h2>Recent Client Intakes</h2><a href="{{ url_for('intakes') }}">Intake pipeline</a></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prospective Client</th><th>Practice Area</th><th>Status</th><th>Contact</th><th>Submitted</th></tr></thead>
+      <tbody>
+      {% for intake in recent_intakes %}
+        <tr>
+          <td><a class="strong-link" href="{{ url_for('intake_detail', intake_id=intake.id) }}">{{ intake.first_name }} {{ intake.last_name }}</a><small>Intake #{{ intake.id }}</small></td>
+          <td>{{ intake_types[intake.intake_type].name }}</td>
+          <td><span class="badge intake-status {{ intake.status|lower|replace(' ','-') }}">{{ intake.status }}</span></td>
+          <td>{{ intake.phone or intake.email or '—' }}</td>
+          <td>{{ intake.submitted_at[:16] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="empty">No intakes yet. <a href="{{ url_for('intake_choose') }}">Start the first intake.</a></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="card">
+  <div class="card-head"><h2>Recent Matters</h2><a href="{{ url_for('matters') }}">All matters</a></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Matter</th><th>Client</th><th>Type</th><th>Status</th><th>Next Hearing</th></tr></thead>
+      <tbody>
+      {% for matter in recent_matters %}
+        <tr>
+          <td><a class="strong-link" href="{{ url_for('matter_detail', matter_id=matter.id) }}">{{ matter.title }}</a><small>{{ matter.case_number or 'No case number' }}</small></td>
+          <td>{{ matter.client_name }}</td>
+          <td>{{ matter.matter_type or '—' }}</td>
+          <td><span class="badge status">{{ matter.status }}</span></td>
+          <td>{{ matter.next_hearing.replace('T',' ') if matter.next_hearing else '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="empty">No matters yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

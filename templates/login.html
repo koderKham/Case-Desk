@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Sign in · CaseDesk{% endblock %}
+{% block auth_content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand auth-brand"><span class="brand-mark">CD</span><span><strong>CaseDesk</strong><small>Law Practice Manager</small></span></div>
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to your case management workspace.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    <form method="post" class="stack">
+      {{ csrf_field()|safe }}
+      <label>Email<input type="email" name="email" value="admin@example.com" required></label>
+      <label>Password<input type="password" name="password" value="ChangeMe123!" required></label>
+      <button class="button wide" type="submit">Sign in</button>
+    </form>
+    <p class="demo-note">Demo login is pre-filled. Change it before real use.</p>
+  </div>
+</div>
+{% endblock %}

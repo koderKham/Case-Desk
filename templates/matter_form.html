@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if matter else 'New' }} Matter · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">MATTER</p><h1>{{ 'Edit Matter' if matter else 'New Matter' }}</h1></div></div>
+<section class="card form-card">
+<form method="post" class="form-grid">
+  {{ csrf_field()|safe }}
+  <label>Client<select name="client_id" required>{% for c in clients %}<option value="{{ c.id }}" {% if matter and matter.client_id==c.id %}selected{% elif not matter and request.args.get('client')|int==c.id %}selected{% endif %}>{{ c.organization_name if c.person_type=='Business' else c.last_name ~ ', ' ~ c.first_name }}</option>{% endfor %}</select></label>
+  <label>Case Number<input name="case_number" value="{{ matter.case_number or '' if matter else '' }}"></label>
+  <label class="span-2">Matter Title<input name="title" value="{{ matter.title if matter else '' }}" placeholder="e.g., State v. Client" required></label>
+  <label>Matter Type<input name="matter_type" value="{{ matter.matter_type or '' if matter else '' }}" placeholder="Criminal Defense, Probate, PI..."></label>
+  <label>Status<select name="status">{% for s in ['Active','Pending','Closed','Archived'] %}<option value="{{ s }}" {% if matter and matter.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Court<input name="court" value="{{ matter.court or '' if matter else '' }}"></label>
+  <label>Judge<input name="judge" value="{{ matter.judge or '' if matter else '' }}"></label>
+  <label>Opposing Counsel / Agency<input name="opposing_counsel" value="{{ matter.opposing_counsel or '' if matter else '' }}"></label>
+  <label>Opened Date<input type="date" name="opened_date" value="{{ matter.opened_date or '' if matter else today }}"></label>
+  <label>Next Hearing<input type="datetime-local" name="next_hearing" value="{{ matter.next_hearing or '' if matter else '' }}"></label>
+  <label class="span-2">Description / Strategy Summary<textarea name="description" rows="6">{{ matter.description or '' if matter else '' }}</textarea></label>
+  <div class="span-2 form-actions"><a class="button ghost" href="{{ url_for('matters') }}">Cancel</a><button class="button" type="submit">Save Matter</button></div>
+</form>
+</section>
+{% endblock %}

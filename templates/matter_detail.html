@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ matter.title }} · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">{{ matter.matter_type or 'MATTER' }}</p><h1>{{ matter.title }}</h1><p class="muted">{{ matter.case_number or 'No case number' }} · {{ matter.court or 'No court listed' }}</p></div>
+  <div class="top-actions"><span class="badge status large">{{ matter.status }}</span><a class="button ghost" href="{{ url_for('matter_edit', matter_id=matter.id) }}">Edit Matter</a></div>
+</div>
+
+<div class="matter-summary">
+  <div><span>Client</span><strong><a href="{{ url_for('person_detail', person_id=matter.client_person_id) }}">{{ matter.client_name }}</a></strong><small>{{ matter.client_phone or '' }}</small></div>
+  <div><span>Judge</span><strong>{{ matter.judge or '—' }}</strong></div>
+  <div><span>Next Hearing</span><strong>{{ matter.next_hearing.replace('T',' ') if matter.next_hearing else 'Not scheduled' }}</strong></div>
+  <div><span>Time / Fees</span><strong>{{ "%.1f"|format(totals.hours) }} hrs</strong><small>${{ "%.2f"|format(totals.fees) }} tracked</small></div>
+</div>
+
+<section class="card"><h2>Case Summary</h2><p class="preline">{{ matter.description or 'No case summary yet.' }}</p>{% if matter.opposing_counsel %}<p><strong>Opposing counsel / agency:</strong> {{ matter.opposing_counsel }}</p>{% endif %}</section>
+
+<section class="card" id="people">
+  <div class="card-head"><div><h2>People & Organizations</h2><p class="muted">Attach heirs, witnesses, businesses, and other contacts to this matter.</p></div><a class="button ghost small" href="{{ url_for('person_new', matter_id=matter.id) }}">+ New Contact</a></div>
+  <form method="post" action="{{ url_for('matter_person_add', matter_id=matter.id) }}" class="quick-form">
+    {{ csrf_field()|safe }}
+    <select name="person_id" required><option value="">Select contact…</option>{% for p in available_people %}<option value="{{ p.id }}">{{ p.organization_name if p.person_type=='Business' else p.last_name ~ ', ' ~ p.first_name }} ({{ p.roles or 'Unassigned' }})</option>{% endfor %}</select>
+    <select name="role" required>{% for role in person_role_options %}<option>{{ role }}</option>{% endfor %}<option>Custom</option></select>
+    <input name="custom_role" placeholder="Custom role, if selected">
+    <input name="relationship_notes" placeholder="Relationship / interest (optional)">
+    <button class="button small" type="submit">Add</button>
+  </form>
+  <div class="list compact">{% for p in matter_people %}<div class="list-row"><div><strong><a href="{{ url_for('person_detail', person_id=p.person_id) }}">{{ p.organization_name if p.person_type=='Business' else p.first_name ~ ' ' ~ p.last_name }}</a></strong><small>{{ p.role }}{% if p.relationship_notes %} · {{ p.relationship_notes }}{% endif %}</small></div><form method="post" action="{{ url_for('matter_person_delete', matter_id=matter.id, person_id=p.person_id) }}" onsubmit="return confirm('Remove this contact from the matter?')">{{ csrf_field()|safe }}<input type="hidden" name="role" value="{{ p.role }}"><button class="icon-button danger-text">×</button></form></div>{% else %}<p class="empty">No additional contacts linked to this matter.</p>{% endfor %}</div>
+</section>
+
+<div class="grid two">
+<section class="card" id="tasks">
+  <div class="card-head"><h2>Tasks</h2></div>
+  <form method="post" action="{{ url_for('task_new') }}" class="quick-form">
+    {{ csrf_field()|safe }}<input type="hidden" name="matter_id" value="{{ matter.id }}">
+    <input name="title" placeholder="Add a task..." required><input type="date" name="due_date">
+    <select name="priority"><option>Normal</option><option>High</option><option>Urgent</option><option>Low</option></select>
+    <button class="button small" type="submit">Add</button>
+  </form>
+  <div class="list compact">{% for task in tasks %}
+    <div class="list-row">
+      <div><strong class="{{ 'done' if task.status=='Completed' else '' }}">{{ task.title }}</strong><small>{{ task.due_date or 'No due date' }} · {{ task.assigned_to or 'Unassigned' }}</small></div>
+      <div class="row-actions"><span class="badge {{ task.priority|lower }}">{{ task.priority }}</span>
+      <form method="post" action="{{ url_for('task_toggle', task_id=task.id) }}">{{ csrf_field()|safe }}<button class="icon-button" title="Toggle complete">✓</button></form>
+      <form method="post" action="{{ url_for('task_delete', task_id=task.id) }}" onsubmit="return confirm('Delete task?')">{{ csrf_field()|safe }}<button class="icon-button danger-text">×</button></form></div>
+    </div>
+  {% else %}<p class="empty">No tasks.</p>{% endfor %}</div>
+</section>
+
+<section class="card" id="events">
+  <div class="card-head"><h2>Hearings & Events</h2></div>
+  <form method="post" action="{{ url_for('event_new') }}" class="quick-form">
+    {{ csrf_field()|safe }}<input type="hidden" name="matter_id" value="{{ matter.id }}">
+    <input name="title" placeholder="Event title" required><input type="datetime-local" name="start_at" required>
+    <select name="event_type"><option>Hearing</option><option>Deposition</option><option>Trial</option><option>Mediation</option><option>Deadline</option><option>Meeting</option></select>
+    <button class="button small" type="submit">Add</button>
+  </form>
+  <div class="list compact">{% for event in events %}
+    <div class="list-row"><div><strong>{{ event.title }}</strong><small>{{ event.start_at.replace('T',' ') }}{% if event.location %} · {{ event.location }}{% endif %}</small></div><div class="row-actions"><span class="badge">{{ event.event_type }}</span><form method="post" action="{{ url_for('event_delete', event_id=event.id) }}" onsubmit="return confirm('Delete event?')">{{ csrf_field()|safe }}<button class="icon-button danger-text">×</button></form></div></div>
+  {% else %}<p class="empty">No events.</p>{% endfor %}</div>
+</section>
+</div>
+
+<div class="grid two">
+<section class="card" id="notes">
+  <div class="card-head"><h2>Case Notes</h2></div>
+  <form method="post" action="{{ url_for('note_new', matter_id=matter.id) }}" class="stack">
+    {{ csrf_field()|safe }}<textarea name="body" rows="3" placeholder="Add a privileged internal note..." required></textarea><button class="button small align-right" type="submit">Add Note</button>
+  </form>
+  <div class="notes">{% for note in notes %}
+    <article class="note"><p class="preline">{{ note.body }}</p><footer>{{ note.created_by }} · {{ note.created_at }}<form method="post" action="{{ url_for('note_delete', note_id=note.id) }}" onsubmit="return confirm('Delete note?')">{{ csrf_field()|safe }}<button class="link-button danger-text">Delete</button></form></footer></article>
+  {% else %}<p class="empty">No notes.</p>{% endfor %}</div>
+</section>
+
+<section class="card" id="documents">
+  <div class="card-head"><h2>Documents</h2></div>
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('document_upload', matter_id=matter.id) }}" class="upload-form">
+    {{ csrf_field()|safe }}<input type="file" name="file" required><button class="button small" type="submit">Upload</button>
+  </form>
+  <p class="hint">PDF, Word, Excel, text, PNG/JPG. Max 25 MB.</p>
+  <div class="list compact">{% for doc in documents %}
+    <div class="list-row"><div><a class="strong-link" href="{{ url_for('document_download', document_id=doc.id) }}">{{ doc.original_name }}</a><small>{{ doc.uploaded_by }} · {{ doc.uploaded_at }}</small></div><form method="post" action="{{ url_for('document_delete', document_id=doc.id) }}" onsubmit="return confirm('Delete document?')">{{ csrf_field()|safe }}<button class="icon-button danger-text">×</button></form></div>
+  {% else %}<p class="empty">No documents uploaded.</p>{% endfor %}</div>
+</section>
+</div>
+
+<section class="card" id="time">
+  <div class="card-head"><h2>Time Entries</h2><strong>{{ "%.1f"|format(totals.hours) }} hrs · ${{ "%.2f"|format(totals.fees) }}</strong></div>
+  <form method="post" action="{{ url_for('time_new') }}" class="quick-form time-form">
+    {{ csrf_field()|safe }}<input type="hidden" name="matter_id" value="{{ matter.id }}">
+    <input type="date" name="work_date" value="{{ today }}" required><input type="number" step="0.1" min="0.1" name="hours" placeholder="Hours" required>
+    <input name="description" placeholder="Work performed" required><input type="number" step="0.01" min="0" name="rate" value="450" placeholder="Rate">
+    <label class="checkbox"><input type="checkbox" name="billable" checked> Billable</label><button class="button small" type="submit">Add</button>
+  </form>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Hours</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody>
+  {% for entry in time_entries %}<tr><td>{{ entry.work_date }}</td><td>{{ entry.description }}</td><td>{{ "%.1f"|format(entry.hours) }}</td><td>{{ '$%.2f'|format(entry.rate) if entry.billable else 'Nonbillable' }}</td><td>{{ '$%.2f'|format(entry.hours*entry.rate) if entry.billable else '—' }}</td><td><form method="post" action="{{ url_for('time_delete', entry_id=entry.id) }}" onsubmit="return confirm('Delete time entry?')">{{ csrf_field()|safe }}<button class="icon-button danger-text">×</button></form></td></tr>
+  {% else %}<tr><td colspan="6" class="empty">No time entries.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="danger-zone"><form method="post" action="{{ url_for('matter_delete', matter_id=matter.id) }}" onsubmit="return confirm('Delete this matter and all related tasks, notes, events, documents, and time?');">{{ csrf_field()|safe }}<button class="danger-button" type="submit">Delete Matter</button></form></section>
+{% endblock %}

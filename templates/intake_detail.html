@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ intake.first_name }} {{ intake.last_name }} Intake · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">{{ config.name|upper }} INTAKE #{{ intake.id }}</p><h1>{{ intake.first_name }} {{ intake.last_name }}</h1><p class="muted">Submitted {{ intake.submitted_at[:16] }}{% if intake.reviewed_by %} · Last reviewed by {{ intake.reviewed_by }}{% endif %}</p></div>
+  <div class="page-actions"><a class="button ghost" href="{{ url_for('intakes') }}">Back to Intakes</a>{% if not intake.linked_matter_id %}<a class="button ghost" href="{{ url_for('intake_edit', intake_id=intake.id) }}">Edit Intake</a><form method="post" action="{{ url_for('intake_convert', intake_id=intake.id) }}" onsubmit="return confirm('Create a new client and active matter from this intake?');">{{ csrf_field()|safe }}<button class="button" type="submit">Convert to Client + Matter</button></form>{% endif %}</div>
+</div>
+
+<div class="intake-summary-bar">
+  <div><span>Practice Area</span><strong>{{ config.name }}</strong></div>
+  <div><span>Status</span><strong><span class="badge intake-status {{ intake.status|lower|replace(' ','-') }}">{{ intake.status }}</span></strong></div>
+  <div><span>Preferred Contact</span><strong>{{ intake.preferred_contact or 'Not specified' }}</strong></div>
+  <div><span>Referral</span><strong>{{ intake.referred_by or 'Not specified' }}</strong></div>
+</div>
+
+<div class="grid two intake-detail-grid">
+  <section class="card">
+    <div class="card-head"><h2>Contact & Conflict Check</h2></div>
+    <dl class="details intake-details">
+      <dt>Email</dt><dd>{{ intake.email or '—' }}</dd>
+      <dt>Phone</dt><dd>{{ intake.phone or '—' }}</dd>
+      <dt>Address</dt><dd>{{ intake.address or '' }}{% if intake.city or intake.state or intake.zip_code %}<br>{{ intake.city }}{% if intake.city and intake.state %}, {% endif %}{{ intake.state }} {{ intake.zip_code }}{% endif %}</dd>
+      <dt>Conflict Names</dt><dd class="preline">{{ intake.conflict_names or '—' }}</dd>
+      <dt>Urgency</dt><dd class="preline urgency-text">{{ intake.urgency or '—' }}</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Intake Workflow</h2></div>
+    <form method="post" action="{{ url_for('intake_status_update', intake_id=intake.id) }}" class="stack">
+      {{ csrf_field()|safe }}
+      <label>Status<select name="status">{% for status in intake_statuses %}<option value="{{ status }}" {% if intake.status==status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></label>
+      <button class="button small align-right" type="submit">Update Status</button>
+    </form>
+    {% if intake.linked_client_id or intake.linked_matter_id %}
+    <div class="converted-box"><strong>Converted</strong><p>This intake is linked to an active CaseDesk record.</p>{% if intake.linked_client_id %}<a href="{{ url_for('client_detail', client_id=intake.linked_client_id) }}">Open Client</a>{% endif %}{% if intake.linked_matter_id %}<a href="{{ url_for('matter_detail', matter_id=intake.linked_matter_id) }}">Open Matter</a>{% endif %}</div>
+    {% endif %}
+  </section>
+</div>
+
+{% for section_name, fields in config.sections %}
+<section class="card intake-review-section">
+  <div class="card-head"><h2>{{ section_name }}</h2></div>
+  <div class="review-grid">
+  {% for field in fields %}
+    {% set value=payload.get(field[0], '') %}
+    <div class="review-field {{ 'wide' if field[2]=='textarea' else '' }}"><span>{{ field[1] }}</span><div class="preline">{{ value or '—' }}</div></div>
+  {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+{% if not intake.linked_client_id and not intake.linked_matter_id %}
+<section class="card danger-zone intake-danger">
+  <div><h2>Delete Intake</h2><p class="muted">Deletes this unconverted intake submission permanently.</p></div>
+  <form method="post" action="{{ url_for('intake_delete', intake_id=intake.id) }}" onsubmit="return confirm('Delete this intake permanently?');">{{ csrf_field()|safe }}<button class="danger-button" type="submit">Delete Intake</button></form>
+</section>
+{% endif %}
+{% endblock %}

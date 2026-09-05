@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}New Intake · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CLIENT INTAKE</p><h1>Start a New Intake</h1><p class="muted">Choose the practice area to open the appropriate intake questionnaire.</p></div>
+  <a class="button ghost" href="{{ url_for('intakes') }}">All Intakes</a>
+</div>
+<div class="intake-type-grid">
+  {% for slug, item in intake_types.items() %}
+  <a class="intake-type-card" href="{{ url_for('intake_new', intake_type=slug) }}">
+    <span class="intake-icon">{{ {'estate-planning':'EP','personal-injury':'PI','probate':'PR','criminal':'CR'}[slug] }}</span>
+    <div><h2>{{ item.name }}</h2><p>{{ item.description }}</p></div>
+    <span class="arrow">→</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

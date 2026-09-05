@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit " if editing else "" }}{{ config.name }} Intake · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">{{ config.name|upper }} INTAKE</p><h1>{{ "Edit" if editing else "New" }} {{ config.name }} Client Intake</h1><p class="muted">{{ config.description }}</p></div>
+  <a class="button ghost" href="{{ url_for('intake_choose') }}">Change Practice Area</a>
+</div>
+<form method="post" class="intake-form">
+  {{ csrf_field()|safe }}
+  <section class="card intake-section">
+    <div class="section-heading"><div><span class="section-number">1</span><h2>Prospective Client & Conflict Information</h2></div><p>Basic contact details and names needed for the firm's conflict check.</p></div>
+    <div class="form-grid intake-fields">
+      {% for field in common_fields %}
+        {% set key=field[0] %}{% set label=field[1] %}{% set kind=field[2] %}
+        <label class="{{ 'span-2' if kind=='textarea' else '' }}">{{ label }}{% if key in ['first_name','last_name'] %}<span class="required"> *</span>{% endif %}
+        {% if kind=='textarea' %}<textarea name="{{ key }}" rows="3">{{ values.get(key,'') }}</textarea>
+        {% elif kind=='select' %}<select name="{{ key }}"><option value="">Select…</option>{% for opt in field[3] %}<option value="{{ opt }}" {% if values.get(key)==opt %}selected{% endif %}>{{ opt }}</option>{% endfor %}</select>
+        {% else %}<input type="{{ kind }}" name="{{ key }}" value="{{ values.get(key, 'FL' if key=='state' else '') }}" {% if key in ['first_name','last_name'] %}required{% endif %}>{% endif %}
+        </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% for section_name, fields in config.sections %}
+  <section class="card intake-section">
+    <div class="section-heading"><div><span class="section-number">{{ loop.index + 1 }}</span><h2>{{ section_name }}</h2></div></div>
+    <div class="form-grid intake-fields">
+    {% for field in fields %}
+      {% set key=field[0] %}{% set label=field[1] %}{% set kind=field[2] %}
+      <label class="{{ 'span-2' if kind=='textarea' else '' }}">{{ label }}
+        {% if kind=='textarea' %}<textarea name="{{ key }}" rows="4">{{ values.get(key,'') }}</textarea>
+        {% elif kind=='select' %}<select name="{{ key }}"><option value="">Select…</option>{% for opt in field[3] %}<option value="{{ opt }}" {% if values.get(key)==opt %}selected{% endif %}>{{ opt }}</option>{% endfor %}</select>
+        {% else %}<input type="{{ kind }}" name="{{ key }}" value="{{ values.get(key,'') }}">{% endif %}
+      </label>
+    {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  <div class="sticky-form-actions">
+    <span class="muted">Fields can be supplemented after the consultation.</span>
+    <div><a class="button ghost" href="{{ url_for('intake_detail', intake_id=intake.id) if editing else url_for('intakes') }}">Cancel</a><button class="button" type="submit">{{ "Save Changes" if editing else "Save Intake" }}</button></div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}People · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">CONTACT DIRECTORY</p><h1>People & Organizations</h1><p class="muted">Clients, heirs, witnesses, businesses, and every other case contact.</p></div><a class="button" href="{{ url_for('person_new') }}">+ New Contact</a></div>
+<section class="card table-card"><div class="table-wrap"><table>
+  <thead><tr><th>Name</th><th>Type</th><th>Role(s)</th><th>Contact</th><th>Matters</th></tr></thead>
+  <tbody>{% for person in people %}<tr>
+    <td><a class="strong-link" href="{{ url_for('person_detail', person_id=person.id) }}">{{ person.organization_name if person.person_type=='Business' else person.last_name ~ ', ' ~ person.first_name }}</a></td>
+    <td><span class="badge">{{ person.person_type }}</span></td>
+    <td>{% for role in (person.roles or '').split(',') if role %}<span class="badge">{{ role }}</span> {% endfor %}</td>
+    <td>{{ person.email or person.phone or '—' }}</td><td>{{ person.matter_count }}</td>
+  </tr>{% else %}<tr><td colspan="5" class="empty">No contacts yet.</td></tr>{% endfor %}</tbody>
+</table></div></section>
+{% endblock %}

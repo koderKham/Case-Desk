@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if person else 'New' }} Contact · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">CONTACT</p><h1>{{ 'Edit Contact' if person else 'New Contact' }}</h1><p class="muted">Choose Individual or Business, then assign every applicable role.</p></div></div>
+<form method="post" class="card form-grid">
+  {{ csrf_field()|safe }}
+  {% set matter_id = request.form.get('matter_id') or request.args.get('matter_id') %}
+  {% if matter_id %}<input type="hidden" name="matter_id" value="{{ matter_id }}"><label class="span-2">Add to Matter As<select name="matter_role"><option value="">Choose after saving</option>{% for role in role_options %}<option {% if request.form.get('matter_role')==role %}selected{% endif %}>{{ role }}</option>{% endfor %}</select></label>{% endif %}
+  <label class="span-2">Contact Type<select name="person_type"><option value="Individual" {% if request.form.get('person_type', person.person_type if person else 'Individual')=='Individual' %}selected{% endif %}>Individual</option><option value="Business" {% if request.form.get('person_type', person.person_type if person else '')=='Business' %}selected{% endif %}>Business / Organization</option></select></label>
+  <label class="span-2">Business / Organization Name<input name="organization_name" value="{{ request.form.get('organization_name', person.organization_name or '' if person else '') }}" placeholder="Required for a business"></label>
+  <label>First Name<input name="first_name" value="{{ request.form.get('first_name', person.first_name or '' if person else '') }}" placeholder="Required for an individual"></label>
+  <label>Last Name<input name="last_name" value="{{ request.form.get('last_name', person.last_name or '' if person else '') }}" placeholder="Required for an individual"></label>
+  <fieldset class="span-2"><legend>Role(s)</legend><div class="checkbox-row">{% for role in role_options %}<label><input type="checkbox" name="roles" value="{{ role }}" {% if role in person_roles or (not person and role=='Client' and not request.form) %}checked{% endif %}> {{ role }}</label>{% endfor %}</div></fieldset>
+  <label class="span-2">Other Role(s)<input name="custom_roles" value="{{ request.form.get('custom_roles', custom_roles) }}" placeholder="Guardian, creditor, investigator (comma-separated)"></label>
+  <label>Email<input type="email" name="email" value="{{ request.form.get('email', person.email or '' if person else '') }}"></label>
+  <label>Phone<input name="phone" value="{{ request.form.get('phone', person.phone or '' if person else '') }}"></label>
+  <label class="span-2">Street Address<input name="address" value="{{ request.form.get('address', person.address or '' if person else '') }}"></label>
+  <label>City<input name="city" value="{{ request.form.get('city', person.city or '' if person else '') }}"></label>
+  <label>State<input name="state" value="{{ request.form.get('state', person.state or 'FL' if person else 'FL') }}"></label>
+  <label>ZIP<input name="zip_code" value="{{ request.form.get('zip_code', person.zip_code or '' if person else '') }}"></label>
+  <label class="span-2">Internal Notes<textarea name="notes" rows="5">{{ request.form.get('notes', person.notes or '' if person else '') }}</textarea></label>
+  <div class="span-2 form-actions"><a class="button ghost" href="{{ url_for('people') }}">Cancel</a><button class="button" type="submit">Save Contact</button></div>
+</form>
+{% endblock %}

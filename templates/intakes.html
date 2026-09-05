@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Client Intakes · CaseDesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CLIENT INTAKE</p><h1>Intake Pipeline</h1><p class="muted">Review prospective clients, run conflicts, and convert accepted intakes into matters.</p></div>
+  <a class="button" href="{{ url_for('intake_choose') }}">+ New Intake</a>
+</div>
+<section class="card intake-filter-card">
+  <form method="get" class="filter-form">
+    <label>Practice Area
+      <select name="type">
+        <option value="">All Practice Areas</option>
+        {% for slug, item in intake_types.items() %}<option value="{{ slug }}" {% if selected_type==slug %}selected{% endif %}>{{ item.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Status
+      <select name="status">
+        <option value="">All Statuses</option>
+        {% for status in intake_statuses %}<option value="{{ status }}" {% if selected_status==status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="filter-actions"><button class="button small" type="submit">Filter</button><a class="button ghost small" href="{{ url_for('intakes') }}">Clear</a></div>
+  </form>
+</section>
+<section class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prospective Client</th><th>Practice Area</th><th>Status</th><th>Contact</th><th>Urgency</th><th>Submitted</th></tr></thead>
+      <tbody>
+      {% for intake in intakes %}
+        <tr>
+          <td><a class="strong-link" href="{{ url_for('intake_detail', intake_id=intake.id) }}">{{ intake.first_name }} {{ intake.last_name }}</a><small>Intake #{{ intake.id }}</small></td>
+          <td>{{ intake_types[intake.intake_type].name }}</td>
+          <td><span class="badge intake-status {{ intake.status|lower|replace(' ','-') }}">{{ intake.status }}</span></td>
+          <td>{{ intake.phone or intake.email or '—' }}{% if intake.preferred_contact %}<small>Prefers {{ intake.preferred_contact }}</small>{% endif %}</td>
+          <td>{% if intake.urgency %}<span class="urgency-dot"></span>{{ intake.urgency[:65] }}{% if intake.urgency|length > 65 %}…{% endif %}{% else %}—{% endif %}</td>
+          <td>{{ intake.submitted_at[:16] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No intake submissions match these filters.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
