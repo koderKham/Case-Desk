@@ -85,7 +85,7 @@ INTAKE_TYPES = {
                 ("date_of_birth", "Date of Birth", "date"),
                 ("incident_date", "Incident Date", "date"),
                 ("incident_time", "Approximate Time", "time"),
-                ("incident_type", "Type of Incident", "select", ["Auto Collision", "Premises Liability", "Slip / Trip and Fall", "Negligent Security", "Dog Bite", "Medical Negligence", "Assault / [...]
+                ("incident_type", "Type of Incident", "select", ["Auto Collision", "Premises Liability", "Slip / Trip and Fall", "Negligent Security", "Dog Bite", "Medical Negligence", "Assault / [...]]
                 ("incident_location", "Incident Location", "text"),
                 ("incident_narrative", "Describe What Happened", "textarea"),
                 ("fault_theory", "Why Do You Believe the Other Party Was at Fault?", "textarea"),
