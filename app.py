@@ -948,4 +948,4 @@ if not is_using_postgres() or os.environ.get("FLASK_ENV") != "production":
     ensure_database()
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1")
+    app.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1")
