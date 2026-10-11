@@ -85,7 +85,7 @@ INTAKE_TYPES = {
                 ("date_of_birth", "Date of Birth", "date"),
                 ("incident_date", "Incident Date", "date"),
                 ("incident_time", "Approximate Time", "time"),
-                ("incident_type", "Type of Incident", "select", ["Auto Collision", "Premises Liability", "Slip / Trip and Fall", "Negligent Security", "Dog Bite", "Medical Negligence", "Assault / [...]]
+                ("incident_type", "Type of Incident", "select", ["Auto Collision", "Premises Liability", "Slip / Trip and Fall", "Negligent Security", "Dog Bite", "Medical Negligence", "Assault & Battery"]),
                 ("incident_location", "Incident Location", "text"),
                 ("incident_narrative", "Describe What Happened", "textarea"),
                 ("fault_theory", "Why Do You Believe the Other Party Was at Fault?", "textarea"),
@@ -769,8 +769,12 @@ def logout():
 # ---------------------------
 # Dashboard / search
 # ---------------------------
-
 @app.route("/")
+def index():
+    return "<a href = '{{ url_for('login') }}' > Login </a>"
+
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     db = get_db()
@@ -904,11 +908,61 @@ def global_search():
         ).fetchall()
 
     return render_template("search.html", q=q, results=results, intake_types=INTAKE_TYPES)
+@app.get("/people")
+def people():
+    return "Hi"
 
 
 # Additional routes (people, matters, tasks, etc.) would follow the same pattern
 # For brevity, this shows the pattern for the critical database initialization and dashboard route
+@app.get("/matters")
+def matters():
+    return render_template("matters.html")
 
+@app.get("/intakes")
+def intakes():
+    return render_template("intakes.html")
+@app.get("/notes")
+def notes():
+    return "hi"
+@app.get("/tasks")
+def tasks():
+    return "hi"
+
+@app.get("/calendar")
+def calendar():
+    return "hi"
+@app.get("/events")
+def events():
+    return "hi"
+@app.get("/recent_matters")
+def recent_matters():
+    return "hi"
+@app.get("/recent_intakes")
+def recent_intakes():
+    return "hi"
+@app.get("/intake_submissions")
+def intake_submissions():
+    return "hi"
+@app.get("/time_entries")
+def time_entries():
+    return "hi"
+
+@app.get("/intake_choose")
+def intake_choose():
+    return "hi"
+@app.get("/intake_choose_")
+def intake_choose_():
+    return "hi"
+@app.get("/person_new")
+def person_new():
+    return "hi"
+@app.get("/matter_new")
+def matter_new():
+    return "hi"
+@app.get("/matter_detail")
+def matter_detail():
+    return "hi"
 # ---------------------------
 # Errors
 # ---------------------------
@@ -948,4 +1002,4 @@ if not is_using_postgres() or os.environ.get("FLASK_ENV") != "production":
     ensure_database()
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1")
+    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1")
